@@ -1,0 +1,229 @@
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.hero-section {
+    background: 
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url('../images/busig.jpg') no-repeat center center;
+    background-size: cover;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Optional: Animated 3D background effect */
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: -60px; width: 200px; height: 200px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 50%;
+    filter: blur(2px);
+    animation: float 6s ease-in-out infinite alternate;
+    z-index: 1;
+}
+@keyframes float {
+    0% { transform: translateY(0) scale(1);}
+    100% { transform: translateY(40px) scale(1.1);}
+}
+.hero-content {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 2;
+}
+
+/* 3D Card Effect for Home Page */
+.card-3d {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 1.5px 4px rgba(0,0,0,0.08);
+    transform: perspective(600px) rotateY(8deg) scale(1.01);
+    transition: transform 0.3s cubic-bezier(.25,.8,.25,1), box-shadow 0.3s;
+    border: none;
+}
+.card-3d:hover {
+    transform: perspective(600px) rotateY(0deg) scale(1.05);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25), 0 3px 8px rgba(0,0,0,0.12);
+    z-index: 2;
+}
+.card-3d .fa-3x {
+    text-shadow: 0 4px 16px rgba(44, 62, 80, 0.15);
+}
+
+/* Card Styles */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+/* Seat Layout */
+.seat-layout {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.bus-driver {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.seat-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.seat {
+    margin: 0 5px;
+    position: relative;
+}
+
+.seat input[type="checkbox"] {
+    display: none;
+}
+
+.seat label {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    background-color: #28a745;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.seat input[type="checkbox"]:checked + label {
+    background-color: #007bff;
+}
+
+.seat .booked {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 5px;
+    cursor: not-allowed;
+}
+
+.seat-legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+}
+
+.seat-available, .seat-selected, .seat-booked {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    border-radius: 3px;
+}
+
+.seat-available {
+    background-color: #28a745;
+}
+
+.seat-selected {
+    background-color: #007bff;
+}
+
+.seat-booked {
+    background-color: #dc3545;
+}
+
+/* Booking Details */
+.booking-details .detail-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed #dee2e6;
+}
+
+.detail-label {
+    font-weight: bold;
+}
+
+/* Price Summary */
+.price-summary .price-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.price-summary .total {
+    font-weight: bold;
+    font-size: 1.1em;
+    border-top: 1px solid #dee2e6;
+    padding-top: 10px;
+}
+
+/* Custom alert styles */
+.alert {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    border-left: 4px solid #2e7d32;
+}
+
+.alert-error {
+    border-left: 4px solid #c62828;
+}
+
+.alert-warning {
+    border-left: 4px solid #f9a825;
+}
+
+.alert-info {
+    border-left: 4px solid #1565c0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .hero-section {
+        height: 300px;
+    }
+    .seat label, .seat .booked {
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+    }
+    .card-3d {
+        margin-bottom: 24px;
+    }
+}
