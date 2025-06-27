@@ -1,0 +1,135 @@
+<?php
+session_start();
+require_once 'includes/config.php';
+
+// Ensure user is logged in and is a conductor
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'conductor') {
+    header('Location: login.php');
+    exit;
+}
+
+// Get the bus assigned to this conductor
+$stmt = $pdo->prepare("SELECT bus_id FROM conductors WHERE user_id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$bus_id = $stmt->fetchColumn();
+
+if (!$bus_id) {
+    echo "<div class='alert alert-danger'>No bus assigned to your account.</div>";
+    exit;
+}
+
+// Fetch all schedules (trips) for this bus, ordered by date
+$stmt = $pdo->prepare("SELECT * FROM schedules WHERE bus_id = ? ORDER BY departure_time DESC");
+$stmt->execute([$bus_id]);
+$schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Handle attendance update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['attendance'], $_POST['booking_id'])) {
+    $attendance = $_POST['attendance'] === 'present' ? 'present' : 'absent';
+    $booking_id = (int)$_POST['booking_id'];
+    $stmt = $pdo->prepare("UPDATE bookings SET attendance = ? WHERE booking_id = ?");
+    $stmt->execute([$attendance, $booking_id]);
+    header("Location: conductor_dashboard.php");
+    exit;
+}
+
+include('includes/header.php');
+?>
+
+<div class="container mt-4">
+    <h2>Conductor Dashboard</h2>
+    <p class="mb-4">Bus: <strong>
+        <?php
+        $stmt = $pdo->prepare("SELECT bus_name, bus_number FROM buses WHERE bus_id = ?");
+        $stmt->execute([$bus_id]);
+        $bus_info = $stmt->fetch(PDO::FETCH_ASSOC);
+        echo htmlspecialchars($bus_info['bus_name'] . " (" . $bus_info['bus_number'] . ")");
+        ?>
+    </strong></p>
+
+    <?php if (empty($schedules)): ?>
+        <div class="alert alert-info">No trips scheduled for your bus.</div>
+    <?php else: ?>
+        <?php foreach ($schedules as $schedule): ?>
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <strong>Trip:</strong> <?php echo date('M d, Y h:i A', strtotime($schedule['departure_time'])); ?>
+                    <span class="float-end">Schedule ID: <?php echo $schedule['schedule_id']; ?></span>
+                </div>
+                <div class="card-body">
+                    <?php
+                    // Fetch bookings for this schedule
+                    $stmt = $pdo->prepare("SELECT b.*, u.full_name, u.phone 
+                                          FROM bookings b 
+                                          JOIN users u ON b.user_id = u.user_id 
+                                          WHERE b.schedule_id = ? 
+                                          ORDER BY b.booking_id ASC");
+                    $stmt->execute([$schedule['schedule_id']]);
+                    $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    ?>
+                    
+                    <?php if (empty($bookings)): ?>
+                        <div class="alert alert-secondary">No bookings for this trip.</div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>Passenger</th>
+                                        <th>Phone</th>
+                                        <th>Seats</th>
+                                        <th>Status</th>
+                                        <th>Attendance</th>
+                                        <th>Mark Attendance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($bookings as $booking): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($booking['booking_id']); ?></td>
+                                        <td><?php echo htmlspecialchars($booking['full_name']); ?></td>
+                                        <td><?php echo htmlspecialchars($booking['phone']); ?></td>
+                                        <td><?php echo htmlspecialchars($booking['seat_numbers']); ?></td>
+                                        <td>
+                                            <span class="badge bg-<?php 
+                                                echo $booking['status'] === 'Confirmed' ? 'success' : 
+                                                     ($booking['status'] === 'Cancelled' ? 'danger' : 'secondary'); 
+                                            ?>">
+                                                <?php echo htmlspecialchars($booking['status']); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-<?php 
+                                                echo $booking['attendance'] === 'present' ? 'success' : 
+                                                     ($booking['attendance'] === 'absent' ? 'danger' : 'secondary'); 
+                                            ?>">
+                                                <?php echo htmlspecialchars($booking['attendance']); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?php if ($booking['status'] === 'Confirmed' && $booking['attendance'] === 'pending'): ?>
+                                                <form method="post" class="d-inline">
+                                                    <input type="hidden" name="booking_id" value="<?php echo $booking['booking_id']; ?>">
+                                                    <button type="submit" name="attendance" value="present" class="btn btn-success btn-sm">Present</button>
+                                                    <button type="submit" name="attendance" value="absent" class="btn btn-danger btn-sm">Absent</button>
+                                                </form>
+                                            <?php elseif ($booking['attendance'] !== 'pending'): ?>
+                                                <span class="text-muted">Marked</span>
+                                            <?php else: ?>
+                                                <span class="text-muted">N/A</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</div>
+
+<?php include('includes/footer.php'); ?>
